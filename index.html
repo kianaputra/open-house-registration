@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open House Registration</title>
+  <style>
+    :root {
+      --page-bg: #f0efef;
+      --card-bg: #ffffff;
+      --primary: #302d79;
+      --text: #302d79;
+      --muted: #666477;
+      --border: #dedee8;
+      --button: #302d79;
+      --button-text: #ffffff;
+      --card-radius: 20px;
+      --form-width: 752px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 28px 14px 48px;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--text); background: var(--page-bg);
+      line-height: 1.55;
+      background-size: cover; background-position: center top; background-attachment: fixed;
+    }
+    .page { width: 100%; max-width: var(--form-width); margin: 0 auto; }
+    .brand { text-align: center; margin: 0 auto 24px; }
+    .brand img { max-width: 362px; max-height: 120px; width: auto; height: auto; object-fit: contain; }
+    .brand img.hidden { display: none; }
+    .hero-image { width: 100%; max-height: 300px; object-fit: cover; display: block; margin-bottom: 0; }
+    .hero-image.hidden { display: none; }
+    .form-card { background: var(--card-bg); border-radius: var(--card-radius); overflow: hidden; box-shadow: 0 8px 30px rgba(30, 25, 70, .08); }
+    .content { padding: 30px 36px 36px; }
+    h1, h2 { color: var(--primary); line-height: 1.25; margin: 0 0 16px; }
+    h1 { font-size: clamp(25px, 4vw, 34px); }
+    h2 { font-size: 22px; margin-top: 28px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .intro { margin: 0 0 24px; color: var(--text); }
+    .intro p { margin: 0 0 12px; }
+    .event-banner { padding: 16px 18px; border-radius: 12px; background: #f7f6fb; margin: 20px 0 26px; }
+    .event-banner strong { display: block; margin-bottom: 4px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label, .field-label { display: block; font-weight: 600; margin-bottom: 7px; font-size: 15px; }
+    .required { color: #c62828; }
+    input, select, textarea {
+      display: block; width: 100%; border: 1px solid #cfcfdb; border-radius: 8px;
+      padding: 12px 13px; font: inherit; color: #29283b; background: #fff;
+      min-height: 46px;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid rgba(48,45,121,.18); border-color: var(--primary); }
+    .choice-list { display: grid; gap: 9px; padding-top: 4px; }
+    .choice { display: flex; align-items: flex-start; gap: 9px; font-weight: 400; margin: 0; }
+    .choice input { width: 18px; min-height: 18px; height: 18px; margin-top: 3px; flex: 0 0 auto; accent-color: var(--primary); }
+    .submit-row { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+    button {
+      border: 0; background: var(--button); color: var(--button-text); padding: 13px 28px;
+      border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; min-width: 180px;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    .status { margin: 0; font-size: 14px; }
+    .status.success { color: #176b37; }
+    .status.error { color: #b42318; }
+    .fine-print { color: var(--muted); font-size: 12px; margin-top: 18px; }
+    .footer { text-align: center; color: var(--muted); font-size: 12px; padding: 18px 8px 0; }
+    .hidden { display: none !important; }
+    @media (max-width: 600px) {
+      body { padding: 18px 10px 30px; }
+      .content { padding: 24px 18px 26px; }
+      .grid { grid-template-columns: 1fr; gap: 16px; }
+      .field.full { grid-column: auto; }
+      .brand img { max-width: 82%; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="brand" id="brandWrap"><img id="schoolLogo" alt="School logo" /></div>
+    <div class="form-card">
+      <img id="heroImage" class="hero-image hidden" alt="School event banner" />
+      <div class="content">
+        <h1 id="formTitle"></h1>
+        <div id="introText" class="intro"></div>
+        <div id="eventBanner" class="event-banner"></div>
+        <form id="registrationForm">
+          <div id="fields" class="grid"></div>
+          <div class="submit-row">
+            <button id="submitButton" type="submit">Submit Registration</button>
+            <p id="status" class="status" role="status" aria-live="polite"></p>
+          </div>
+          <p class="fine-print" id="privacyText"></p>
+        </form>
+      </div>
+    </div>
+    <div class="footer" id="footerText"></div>
+  </main>
+
+  <script>
+    /*
+      =========================
+      EDIT YOUR FORM HERE
+      =========================
+      1) Replace logoUrl and heroImageUrl with your own public image URLs.
+      2) Update text, event details, colors, and fields below.
+      3) After deploying Apps Script, paste its Web App URL into scriptUrl.
+    */
+    const FORM_CONFIG = {
+      schoolName: "Your School Name",
+      title: "Open House Registration",
+      logoUrl: "https://placehold.co/362x72/ffffff/302d79?text=YOUR+SCHOOL+LOGO",
+      heroImageUrl: "", // Example: https://your-site.com/open-house-banner.jpg
+      pageBackground: "#f0efef",
+      cardBackground: "#ffffff",
+      primaryColor: "#302d79",
+      textColor: "#302d79",
+      buttonColor: "#302d79",
+      buttonTextColor: "#ffffff",
+      formWidth: "752px",
+      cardRadius: "20px",
+      introHtml: `
+        <p style="text-align:center;font-size:1.15rem"><strong>Discover a learning experience that prepares your child for life.</strong></p>
+        <p>Join our Open House to learn more about our learning community, curriculum, teachers, and student experience.</p>
+        <p>Please complete the form below to reserve your place. We look forward to welcoming your family!</p>
+      `,
+      eventTitle: "Event Details",
+      eventDetails: "📅 Date: Saturday, 28 November 2026\n⏰ Time: 8:00 AM – 12:00 PM\n📍 Location: School Campus",
+      privacyText: "The information submitted will be used by the school to manage this event registration.",
+      footerText: "© 2026 Your School Name",
+      submitLabel: "Submit Registration",
+      successMessage: "Thank you! Your registration has been submitted.",
+      /*
+        Paste your deployed Google Apps Script Web App URL here.
+        It usually ends with /exec.
+      */
+      scriptUrl: "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE",
+      fields: [
+        { name: "parentName", label: "Parent's / Guardian's Name", type: "text", required: true, placeholder: "Enter full name", width: "half" },
+        { name: "email", label: "Email Address", type: "email", required: true, placeholder: "name@example.com", width: "half" },
+        { name: "phone", label: "Parent's Phone Number", type: "tel", required: true, placeholder: "+62...", width: "half" },
+        { name: "region", label: "Region", type: "select", required: true, width: "half", options: ["Please select", "Indonesia", "Other"] },
+        { name: "homeAddress", label: "Home Address", type: "textarea", required: false, placeholder: "Enter home address", width: "full" },
+        { name: "childName", label: "Child's Full Name", type: "text", required: true, placeholder: "Enter child's full name", width: "half" },
+        { name: "dateOfBirth", label: "Child's Date of Birth", type: "date", required: false, width: "half" },
+        { name: "currentGrade", label: "Child's Current School Grade", type: "select", required: true, width: "half", options: ["Please select", "Early Years", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"] },
+        { name: "targetGrade", label: "Which Grade Level Are You Interested In?", type: "select", required: true, width: "half", options: ["Please select", "Early Years", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"] },
+        { name: "academicYear", label: "Academic Year", type: "radio", required: true, width: "full", options: ["2026/2027", "2027/2028", "2028/2029"] },
+        { name: "eventChoice", label: "Which Event Will You Attend?", type: "radio", required: true, width: "full", options: ["Open House October 2026", "Open House November 2026"] },
+        { name: "preferredTime", label: "Preferred Session", type: "radio", required: false, width: "full", options: ["Morning session", "Afternoon session", "No preference"] },
+        { name: "referral", label: "How did you hear about our school?", type: "select", required: false, width: "half", options: ["Please select", "Google/Search Engine", "Instagram/Social Media", "Friend or Family", "School Event", "Other"] },
+        { name: "message", label: "Questions or Additional Information", type: "textarea", required: false, placeholder: "Tell us anything you'd like the school to know", width: "full" },
+        { name: "consent", label: "I agree that the school may contact me about this registration.", type: "checkbox", required: true, width: "full" }
+      ]
+    };
+
+    const $ = (id) => document.getElementById(id);
+    function applyConfig() {
+      document.documentElement.style.setProperty("--page-bg", FORM_CONFIG.pageBackground);
+      document.documentElement.style.setProperty("--card-bg", FORM_CONFIG.cardBackground);
+      document.documentElement.style.setProperty("--primary", FORM_CONFIG.primaryColor);
+      document.documentElement.style.setProperty("--text", FORM_CONFIG.textColor);
+      document.documentElement.style.setProperty("--button", FORM_CONFIG.buttonColor);
+      document.documentElement.style.setProperty("--button-text", FORM_CONFIG.buttonTextColor);
+      document.documentElement.style.setProperty("--form-width", FORM_CONFIG.formWidth);
+      document.documentElement.style.setProperty("--card-radius", FORM_CONFIG.cardRadius);
+      document.title = FORM_CONFIG.title;
+      $("formTitle").textContent = FORM_CONFIG.title;
+      $("introText").innerHTML = FORM_CONFIG.introHtml;
+      $("eventBanner").innerHTML = "<strong>" + escapeHtml(FORM_CONFIG.eventTitle) + "</strong><div style='white-space:pre-line'>" + escapeHtml(FORM_CONFIG.eventDetails) + "</div>";
+      $("privacyText").textContent = FORM_CONFIG.privacyText;
+      $("footerText").textContent = FORM_CONFIG.footerText;
+      $("submitButton").textContent = FORM_CONFIG.submitLabel;
+      const logo = $("schoolLogo");
+      if (FORM_CONFIG.logoUrl) { logo.src = FORM_CONFIG.logoUrl; logo.onerror = () => $("brandWrap").classList.add("hidden"); }
+      else $("brandWrap").classList.add("hidden");
+      if (FORM_CONFIG.heroImageUrl) { $("heroImage").src = FORM_CONFIG.heroImageUrl; $("heroImage").classList.remove("hidden"); }
+      renderFields();
+    }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+    }
+    function renderFields() {
+      const root = $("fields");
+      root.innerHTML = "";
+      FORM_CONFIG.fields.forEach(field => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "field" + (field.width === "full" ? " full" : "");
+        const label = document.createElement("label");
+        label.htmlFor = "field_" + field.name;
+        label.textContent = field.label;
+        if (field.required) {
+          const star = document.createElement("span");
+          star.className = "required"; star.textContent = " *"; label.appendChild(star);
+        }
+        if (field.type !== "checkbox") wrapper.appendChild(label);
+        let control;
+        if (field.type === "select") {
+          control = document.createElement("select");
+          (field.options || []).forEach((option, index) => {
+            const opt = document.createElement("option");
+            opt.value = index === 0 && option.toLowerCase().includes("select") ? "" : option;
+            opt.textContent = option; control.appendChild(opt);
+          });
+        } else if (field.type === "radio" || field.type === "checkboxGroup") {
+          control = document.createElement("div"); control.className = "choice-list";
+          (field.options || []).forEach((option, index) => {
+            const itemLabel = document.createElement("label"); itemLabel.className = "choice";
+            const input = document.createElement("input");
+            input.type = field.type === "radio" ? "radio" : "checkbox";
+            input.name = field.name; input.value = option; input.required = !!field.required && index === 0;
+            input.dataset.groupRequired = field.required ? "true" : "false";
+            itemLabel.appendChild(input);
+            const span = document.createElement("span"); span.textContent = option; itemLabel.appendChild(span);
+            control.appendChild(itemLabel);
+          });
+        } else if (field.type === "textarea") {
+          control = document.createElement("textarea");
+          control.placeholder = field.placeholder || "";
+        } else if (field.type === "checkbox") {
+          control = document.createElement("label"); control.className = "choice";
+          const input = document.createElement("input"); input.type = "checkbox"; input.name = field.name; input.value = "Yes"; input.required = !!field.required;
+          const span = document.createElement("span"); span.textContent = field.label;
+          control.appendChild(input); control.appendChild(span);
+          if (field.required) { const star = document.createElement("span"); star.className = "required"; star.textContent = " *"; control.appendChild(star); }
+        } else {
+          control = document.createElement("input");
+          control.type = field.type || "text";
+          control.placeholder = field.placeholder || "";
+        }
+        if (field.type !== "radio" && field.type !== "checkboxGroup" && field.type !== "checkbox") {
+          control.id = "field_" + field.name;
+          control.name = field.name;
+          control.required = !!field.required;
+          if (field.maxLength) control.maxLength = field.maxLength;
+          wrapper.appendChild(control);
+        } else {
+          if (field.type === "checkbox") control.querySelector("input").id = "field_" + field.name;
+          wrapper.appendChild(control);
+        }
+        root.appendChild(wrapper);
+      });
+    }
+    function collectValues() {
+      const values = {};
+      FORM_CONFIG.fields.forEach(field => {
+        const controls = document.querySelectorAll('[name="' + CSS.escape(field.name) + '"]');
+        if (field.type === "radio" || field.type === "checkboxGroup") {
+          values[field.name] = Array.from(controls).filter(c => c.checked).map(c => c.value).join(", ");
+        } else if (field.type === "checkbox") {
+          values[field.name] = controls[0]?.checked ? "Yes" : "No";
+        } else {
+          values[field.name] = controls[0]?.value?.trim() || "";
+        }
+      });
+      return values;
+    }
+    $("registrationForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const status = $("status"), button = $("submitButton");
+      status.className = "status"; status.textContent = "";
+      if (!FORM_CONFIG.scriptUrl || FORM_CONFIG.scriptUrl.includes("PASTE_YOUR")) {
+        status.classList.add("error");
+        status.textContent = "Setup needed: add the Google Apps Script Web App URL to FORM_CONFIG.scriptUrl.";
+        return;
+      }
+      const values = collectValues();
+      // Ensure required radio groups have a selection.
+      const missingGroup = FORM_CONFIG.fields.find(f => f.required && (f.type === "radio" || f.type === "checkboxGroup") && !values[f.name]);
+      if (missingGroup) {
+        status.classList.add("error"); status.textContent = "Please complete: " + missingGroup.label; return;
+      }
+      button.disabled = true; button.textContent = "Submitting...";
+      try {
+        const payload = { schoolName: FORM_CONFIG.schoolName, formTitle: FORM_CONFIG.title, submittedAt: new Date().toISOString(), answers: values };
+        // Apps Script accepts this simple request. no-cors means the browser cannot read
+        // the response body; successful fetch completion indicates the request was sent,
+        // but always verify the row in Google Sheets during initial testing.
+        await fetch(FORM_CONFIG.scriptUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        status.classList.add("success"); status.textContent = FORM_CONFIG.successMessage;
+        $("registrationForm").reset();
+      } catch (error) {
+        status.classList.add("error");
+        status.textContent = "We couldn't send the form. Please check your connection or contact the school.";
+        console.error(error);
+      } finally {
+        button.disabled = false; button.textContent = FORM_CONFIG.submitLabel;
+      }
+    });
+    applyConfig();
+  </script>
+</body>
+</html>
